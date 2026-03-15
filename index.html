@@ -6,6 +6,7 @@
   <title>Ocean Finder</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #f0f4f8;
@@ -24,7 +25,7 @@
       border-radius: 20px;
       padding: 2rem;
       width: 100%;
-      max-width: 480px;
+      max-width: 520px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.08);
       margin-bottom: 1.5rem;
     }
@@ -100,14 +101,45 @@
     .dist-card.top { border-color: #93c5fd; background: #eff6ff; }
     .dist-card-name { font-size: 12px; color: #64748b; margin-bottom: 4px; }
     .dist-card-val { font-size: 16px; font-weight: 700; color: #1e3a5f; }
+    .map-section {
+      width: 100%;
+      max-width: 520px;
+      margin-bottom: 1.5rem;
+    }
+    .map-label {
+      font-size: 12px;
+      color: #94a3b8;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+    .map-hint {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 10px;
+    }
+    #map {
+      width: 100%;
+      height: 420px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
     footer { margin-top: 2rem; font-size: 13px; color: #94a3b8; }
   </style>
 </head>
 <body>
   <header>
     <h1>🌊 Ocean Finder</h1>
-    <p>Enter coordinates anywhere on Earth to find the nearest ocean</p>
+    <p>Enter coordinates or click anywhere on the map to find the nearest ocean</p>
   </header>
+
+  <div class="map-section">
+    <div class="map-label">Click anywhere on the map</div>
+    <p class="map-hint">Drop a pin by clicking the map, or use the form below</p>
+    <div id="map"></div>
+  </div>
 
   <div class="card">
     <div class="presets">
@@ -178,6 +210,25 @@
       })).sort((a, b) => a.distance_km - b.distance_km);
     }
 
+    function showResults(lat, lon) {
+      const data = findOceans(lat, lon);
+
+      document.getElementById('winnerIcon').textContent = data[0].emoji;
+      document.getElementById('winnerName').textContent = data[0].name;
+      document.getElementById('winnerDist').textContent = '~' + data[0].distance_km.toLocaleString() + ' km away';
+      document.getElementById('winnerBox').style.background = data[0].color;
+
+      document.getElementById('grid').innerHTML = data.map((o, i) =>
+        `<div class="dist-card ${i === 0 ? 'top' : ''}">
+          <div class="dist-card-name">${o.emoji} ${o.name}</div>
+          <div class="dist-card-val">${o.distance_km.toLocaleString()} km</div>
+        </div>`
+      ).join('');
+
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
     function use(lat, lon) {
       document.getElementById('lat').value = lat;
       document.getElementById('lon').value = lon;
@@ -196,22 +247,56 @@
       }
       err.style.display = 'none';
 
-      const data = findOceans(lat, lon);
+      if (window.mapMarker) {
+        window.mapMarker.setPosition({ lat, lng: lon });
+        window.gmap.panTo({ lat, lng: lon });
+      }
 
-      document.getElementById('winnerIcon').textContent = data[0].emoji;
-      document.getElementById('winnerName').textContent = data[0].name;
-      document.getElementById('winnerDist').textContent = '~' + data[0].distance_km.toLocaleString() + ' km away';
-      document.getElementById('winnerBox').style.background = data[0].color;
+      showResults(lat, lon);
+    }
 
-      document.getElementById('grid').innerHTML = data.map((o, i) =>
-        `<div class="dist-card ${i === 0 ? 'top' : ''}">
-          <div class="dist-card-name">${o.emoji} ${o.name}</div>
-          <div class="dist-card-val">${o.distance_km.toLocaleString()} km</div>
-        </div>`
-      ).join('');
+    let mapReady = false;
 
-      document.getElementById('result').style.display = 'block';
+    function initMap() {
+      window.gmap = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 20, lng: 0 },
+        zoom: 2,
+        mapTypeId: 'hybrid',
+        mapTypeControl: true,
+        streetViewControl: false,
+        fullscreenControl: true,
+      });
+
+      window.mapMarker = new google.maps.Marker({
+        map: window.gmap,
+        visible: false,
+        icon: {
+          url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+          anchor: new google.maps.Point(0, 32)
+        }
+      });
+
+      window.gmap.addListener('click', (e) => {
+        const lat = parseFloat(e.latLng.lat().toFixed(6));
+        const lon = parseFloat(e.latLng.lng().toFixed(6));
+
+        window.mapMarker.setPosition({ lat, lng: lon });
+        window.mapMarker.setVisible(true);
+
+        document.getElementById('lat').value = lat;
+        document.getElementById('lon').value = lon;
+        document.getElementById('err').style.display = 'none';
+
+        showResults(lat, lon);
+      });
+
+      mapReady = true;
     }
   </script>
+
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAv6mVVVDQPom7iEBaYC6GF1O7UCC9Ugyc&callback=initMap&v=weekly"
+    defer
+  ></script>
 </body>
 </html>
