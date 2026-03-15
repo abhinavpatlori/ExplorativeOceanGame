@@ -61,16 +61,15 @@ By continuing to develop new features and expand the platform, the Ocean Explora
 
 
 Sources:
+https://oceanconservancy.org/trash-free-seas/plastics-in-the-ocean/
 
-[1]: https://oceanconservancy.org/trash-free-seas/plastics-in-the-ocean/
+https://www.pewtrusts.org/en/research-and-analysis/reports/2020/07/breaking-the-plastic-wave
 
-[2]: https://www.pewtrusts.org/en/research-and-analysis/reports/2020/07/breaking-the-plastic-wave
+https://ourworldindata.org/plastic-pollution
 
-[3]: https://ourworldindata.org/plastic-pollution
+https://www.oecd.org/environment/plastic-pollution/
 
-[4]: https://www.oecd.org/environment/plastic-pollution/
-
-[5]: https://theoceancleanup.com/rivers/ 
+https://theoceancleanup.com/rivers/ 
 
 
 
